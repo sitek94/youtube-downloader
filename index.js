@@ -70,7 +70,7 @@ app.use(express.json())
 app.use('/download', downloadRouter)
 app.use('/info', infoRouter)
 
-const port = 8000
+const port = process.env.PORT || 8000
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`)
