@@ -29,9 +29,23 @@ downloadRouter.route('/video').get(async (req, res) => {
   stream.pipe(res)
 })
 
-app.get('/download', (req, res) => {
-  const url = req.query.url
-  ytdl(url).pipe(res)
+const infoRouter = express.Router()
+
+// TODO: Should be able to get more than 100 items
+infoRouter.route('/playlist').get(async (req, res) => {
+  const url = req.query['url']
+
+  if (!url) {
+    res.status(400).send('No URL provided')
+  }
+
+  const id = await ytpl.getPlaylistID(url)
+  if (!ytpl.validateID(id)) {
+    res.status(400).send('Invalid URL')
+  }
+
+  const playlist = await ytpl(url)
+  res.json(playlist)
 })
 
 app.get('/playlist', async (req, res) => {
@@ -42,6 +56,7 @@ app.get('/playlist', async (req, res) => {
 })
 
 app.use('/download', downloadRouter)
+app.use('/info', infoRouter)
 
 const port = 8000
 

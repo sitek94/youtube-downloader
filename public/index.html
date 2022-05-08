@@ -133,9 +133,9 @@
     <main>
       <section>
         <h2>Download Playlist</h2>
-        <form id="downloadPlaylist">
-          <label for="playlistId">Playlist ID</label>
-          <input type="text" id="playlistId" />
+        <form id="playlistForm">
+          <label for="playlistUrl">Playlist URL</label>
+          <input type="text" id="playlistUrl" />
           <button type="submit">Download</button>
         </form>
       </section>
@@ -156,25 +156,16 @@
     </footer>
 
     <script>
-      const form = document.querySelector('#downloadPlaylist')
-      const input = document.querySelector('#playlistId')
+      const playlistForm = document.getElementById('playlistForm')
+      const playlistUrlInput = document.getElementById('playlistUrl')
 
-      const videoForm = document.querySelector('#videoForm')
-      const videoUrlInput = document.querySelector('#videoUrl')
-      // videoForm.addEventListener('submit', e => {
-      //   e.preventDefault()
-      //   const url = videoUrlInput.value
-      //   downloadVideo(url)
-      // })
-
-      form.addEventListener('submit', async e => {
+      playlistForm.addEventListener('submit', async e => {
         e.preventDefault()
 
-        const playlistId = input.value
+        const url = playlistUrlInput.value
 
-        const response = await fetch('/playlist')
-        const files = await response.json()
-        console.log(files)
+        const playlistInfo = await fetchPlaylistInfo(url)
+        console.log(playlistInfo)
         //
         // const links = document.createElement('div')
         // // links.style.display = 'none'
@@ -197,6 +188,14 @@
         })
         const json = await response.json()
         console.log(json)
+      }
+
+      async function fetchPlaylistInfo(url) {
+        const response = await fetch('/info/playlist?url=' + url, {
+          method: 'GET',
+        })
+        const json = await response.json()
+        return json
       }
     </script>
   </body>
