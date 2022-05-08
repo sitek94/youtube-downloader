@@ -1,7 +1,8 @@
-const express = require('express')
-const ytdl = require('ytdl-core')
-const ytpl = require('ytpl')
-const contentDisposition = require('content-disposition')
+import express from 'express'
+import ytdl from 'ytdl-core'
+import ytpl from 'ytpl'
+import filenamify from 'filenamify'
+import contentDisposition from 'content-disposition'
 
 const app = express()
 
@@ -14,32 +15,38 @@ downloadRouter.route('/video').get(async (req, res) => {
   const url = req.query['url']
 
   if (!url) {
-    res.status(400).send('No URL provided')
+    return res.status(400).send('No URL provided')
   }
 
   if (!ytdl.validateURL(url)) {
-    res.status(400).send('Invalid URL')
+    return res.status(400).send('Invalid URL')
   }
 
-  const info = await ytdl.getBasicInfo(url)
-  const title = info.videoDetails.title
-  const stream = ytdl(url, {
-    /**
-     * itag 140 - audio-only format
-     * https://github.com/fent/node-ytdl-core#ytdlchooseformatformats-options
-     */
-    quality: 140,
-  })
-
   try {
-    res.header('Content-Disposition', contentDisposition(title + '.mp4'))
+    const info = await ytdl.getBasicInfo(url)
+    const title = info.videoDetails.title
+    const filename = filenamify(title) + '.mp4'
+
+    const stream = ytdl(url, {
+      /**
+       * itag 140 - audio-only format
+       * https://github.com/fent/node-ytdl-core#ytdlchooseformatformats-options
+       */
+      quality: 140,
+    })
+
+    res.setHeader('Content-Disposition', contentDisposition(filename))
     stream.pipe(res)
   } catch (error) {
-    console.log('Title: ', title)
+    if (error.statusCode === 410) {
+      console.log('Video is unavailable')
+      console.log('URL: ', url)
+      return res.status(410).send({ url, message: 'Video is unavailable' })
+    }
     console.log('URL: ', url)
     console.log(error)
 
-    res.status(500).send('Internal server error')
+    return res.status(500).send('Internal server error')
   }
 })
 
@@ -52,12 +59,15 @@ infoRouter.route('/playlist').get(async (req, res) => {
   const url = req.query['url']
 
   if (!url) {
-    res.status(400).send('No URL provided')
+    return res.status(400).send('No URL provided')
   }
 
-  const id = await ytpl.getPlaylistID(url)
-  if (!ytpl.validateID(id)) {
-    res.status(400).send('Invalid URL')
+  let id = ''
+  try {
+    id = await ytpl.getPlaylistID(url)
+  } catch {}
+  if (!id || !ytpl.validateID(id)) {
+    return res.status(400).send('Invalid URL')
   }
 
   const playlist = await ytpl(url, {
@@ -67,7 +77,7 @@ infoRouter.route('/playlist').get(async (req, res) => {
      */
     pages: Infinity,
   })
-  res.json(playlist)
+  return res.json(playlist)
 })
 
 // Middlewares
