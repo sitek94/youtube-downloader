@@ -4,13 +4,13 @@ const ytpl = require('ytpl')
 
 const app = express()
 
-app.use(express.static('public'))
-app.use(express.json())
-
+/**
+ * Downloads
+ */
 const downloadRouter = express.Router()
 
 downloadRouter.route('/video').get(async (req, res) => {
-  const url = req.query['videoUrl']
+  const url = req.query['url']
 
   if (!url) {
     res.status(400).send('No URL provided')
@@ -21,7 +21,13 @@ downloadRouter.route('/video').get(async (req, res) => {
   }
 
   const info = await ytdl.getBasicInfo(url)
-  const stream = ytdl(url)
+  const stream = ytdl(url, {
+    /**
+     * itag 140 - audio-only format
+     * https://github.com/fent/node-ytdl-core#ytdlchooseformatformats-options
+     */
+    quality: 140,
+  })
   res.header(
     'Content-Disposition',
     `attachment; filename="${info.videoDetails.title}.mp4`,
@@ -29,9 +35,11 @@ downloadRouter.route('/video').get(async (req, res) => {
   stream.pipe(res)
 })
 
+/**
+ * Info
+ */
 const infoRouter = express.Router()
 
-// TODO: Should be able to get more than 100 items
 infoRouter.route('/playlist').get(async (req, res) => {
   const url = req.query['url']
 
@@ -44,17 +52,21 @@ infoRouter.route('/playlist').get(async (req, res) => {
     res.status(400).send('Invalid URL')
   }
 
-  const playlist = await ytpl(url)
+  const playlist = await ytpl(url, {
+    /**
+     * Download full playlist
+     * https://github.com/TimeForANinja/node-ytpl#ytplid-options
+     */
+    pages: Infinity,
+  })
   res.json(playlist)
 })
 
-app.get('/playlist', async (req, res) => {
-  const playlist = await ytpl('UU_aEa8K-EOJ3D6gOs7HcyNg')
+// Middlewares
+app.use(express.static('public'))
+app.use(express.json())
 
-  // FIXME: Sending only 3 items during development
-  res.send(playlist.items.slice(0, 3))
-})
-
+// Routes
 app.use('/download', downloadRouter)
 app.use('/info', infoRouter)
 
