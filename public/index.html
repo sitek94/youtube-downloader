@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
+    />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>YouTube Downloader</title>
+    <style>
+      :root {
+        --foreground: #222;
+        --background: #fafafa;
+        --border: #ddd;
+        --accent-contrast: #fff;
+        --accent: royalblue;
+        --accent-dark: #355eda;
+
+        --ring: 0 0 0 2px var(--accent);
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --foreground: #fff;
+          --background: #222;
+          --border: #333;
+          --accent-contrast: #222;
+          --accent: cornflowerblue;
+          --accent-dark: #497edc;
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        font-family: sans-serif;
+        color: var(--foreground);
+        background: var(--background);
+      }
+
+      body {
+        margin: 0 1rem;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      main {
+        width: 100%;
+        max-width: 600px;
+        flex: 1;
+      }
+
+      section:not(:last-child) {
+        margin-bottom: 2rem;
+      }
+
+      footer {
+        padding: 1rem;
+      }
+
+      form {
+        width: 100%;
+        border-radius: 1rem;
+        border: 1px solid var(--border);
+        padding: 2rem;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 0.5rem;
+      }
+
+      input {
+        display: block;
+        width: 100%;
+        border: 2px solid var(--border);
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        color: inherit;
+        background: inherit;
+        padding: 0.5rem;
+        margin-bottom: 1rem;
+        transition: box-shadow 0.2s ease-in-out;
+      }
+      input:focus {
+        outline: none;
+        box-shadow: var(--ring);
+      }
+
+      button {
+        color: var(--accent-contrast);
+        background: var(--accent);
+        font-weight: 500;
+        border: 2px solid var(--background);
+        outline: none;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        transition: background, box-shadow 0.2s ease-in-out;
+      }
+      button:hover {
+        background: var(--accent-dark);
+      }
+      button:focus {
+        box-shadow: var(--ring);
+      }
+
+      a {
+        padding: 0.5rem;
+        color: var(--accent);
+        border-radius: 0.5rem;
+        transition: box-shadow 0.2s ease-in-out;
+      }
+      a:focus {
+        outline: none;
+        box-shadow: var(--ring);
+      }
+
+      .accent {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>You<span class="accent">Tube</span>Downloader</h1>
+    </header>
+    <main>
+      <section>
+        <h2>Download Playlist</h2>
+        <form id="downloadPlaylist">
+          <label for="playlistId">Playlist ID</label>
+          <input type="text" id="playlistId" />
+          <button type="submit">Download</button>
+        </form>
+      </section>
+      <section>
+        <h2>Download Video</h2>
+        <form method="GET" action="/download/video">
+          <label for="videoUrl">Video URL</label>
+          <input type="text" id="videoUrl" name="videoUrl" />
+          <button type="submit">Download</button>
+        </form>
+      </section>
+    </main>
+    <footer>
+      Source code:
+      <a href="https://github.com/sitek94/youtube-downloader">
+        sitek94/youtube-downloader
+      </a>
+    </footer>
+
+    <script>
+      const form = document.querySelector('#downloadPlaylist')
+      const input = document.querySelector('#playlistId')
+
+      const videoForm = document.querySelector('#videoForm')
+      const videoUrlInput = document.querySelector('#videoUrl')
+      // videoForm.addEventListener('submit', e => {
+      //   e.preventDefault()
+      //   const url = videoUrlInput.value
+      //   downloadVideo(url)
+      // })
+
+      form.addEventListener('submit', async e => {
+        e.preventDefault()
+
+        const playlistId = input.value
+
+        const response = await fetch('/playlist')
+        const files = await response.json()
+        console.log(files)
+        //
+        // const links = document.createElement('div')
+        // // links.style.display = 'none'
+        // document.body.appendChild(links)
+        //
+        // for (const file of files) {
+        //   const link = document.createElement('a')
+        //   links.appendChild(link)
+        //   link.href = `/download?url=${encodeURIComponent(file.shortUrl)}`
+        //   link.download = file.title
+        //   link.click()
+        // }
+        //
+        // document.body.removeChild(links)
+      })
+
+      async function downloadVideo(url) {
+        const response = await fetch('/download/video', {
+          body: JSON.stringify({ url }),
+        })
+        const json = await response.json()
+        console.log(json)
+      }
+    </script>
+  </body>
+</html>
