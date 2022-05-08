@@ -179,19 +179,20 @@
       const playlistForm = document.getElementById('playlistForm')
       const playlistUrlInput = document.getElementById('playlistUrl')
 
-      playlistForm.addEventListener('submit', async e => {
+      playlistForm.addEventListener('submit', e => {
         e.preventDefault()
 
-        const url = playlistUrlInput.value
-
-        const playlistInfo = await fetchPlaylistInfo(url)
-        downloadItems(playlistInfo.items)
+        downloadPlaylist(playlistUrlInput.value)
+          .then(() => console.log('🎉 Playlist downloaded!'))
+          .catch(console.error)
       })
 
-      function downloadItems(items) {
-        // FIXME: Download only 3 in development
-        items = items.slice(0, 3)
+      async function downloadPlaylist(url) {
+        const playlistInfo = await fetchPlaylistInfo(url)
+        downloadItems(playlistInfo.items)
+      }
 
+      function downloadItems(items) {
         const links = document.createElement('div')
         links.style.display = 'none'
         document.body.appendChild(links)
@@ -199,7 +200,7 @@
         for (const item of items) {
           const link = document.createElement('a')
           links.appendChild(link)
-          link.href = `/download/video?videoUrl=${item.shortUrl}`
+          link.href = `/download/video?url=${item.shortUrl}`
           link.download = item.title
           link.click()
         }
