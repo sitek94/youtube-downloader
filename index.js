@@ -1,6 +1,7 @@
 const express = require('express')
 const ytdl = require('ytdl-core')
 const ytpl = require('ytpl')
+const contentDisposition = require('content-disposition')
 
 const app = express()
 
@@ -21,6 +22,7 @@ downloadRouter.route('/video').get(async (req, res) => {
   }
 
   const info = await ytdl.getBasicInfo(url)
+  const title = info.videoDetails.title
   const stream = ytdl(url, {
     /**
      * itag 140 - audio-only format
@@ -28,11 +30,17 @@ downloadRouter.route('/video').get(async (req, res) => {
      */
     quality: 140,
   })
-  res.header(
-    'Content-Disposition',
-    `attachment; filename="${info.videoDetails.title}.mp4`,
-  )
-  stream.pipe(res)
+
+  try {
+    res.header('Content-Disposition', contentDisposition(title + '.mp4'))
+    stream.pipe(res)
+  } catch (error) {
+    console.log('Title: ', title)
+    console.log('URL: ', url)
+    console.log(error)
+
+    res.status(500).send('Internal server error')
+  }
 })
 
 /**
