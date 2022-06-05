@@ -11,11 +11,30 @@ const app = express()
  */
 const downloadRouter = express.Router()
 
+const format = {
+  video: 'video',
+  audio: 'audio'
+}
+/**
+ * Available formats
+ * https://github.com/fent/node-ytdl-core#ytdlchooseformatformats-options
+ */
+const formatToQualityMap = {
+  [format.audio]: 'highestaudio',
+  [format.video]: 'highest'
+}
+const allowedFormats = Object.keys(formatToQualityMap)
+
 downloadRouter.route('/video').get(async (req, res) => {
   const url = req.query['url']
+  const format = req.query['format']
 
   if (!url) {
     return res.status(400).send('No URL provided')
+  }
+
+  if (!allowedFormats.includes(format)) {
+    return res.status(400).send(`Invalid format provided. Supported formats: ${allowedFormats}`)
   }
 
   if (!ytdl.validateURL(url)) {
@@ -28,11 +47,7 @@ downloadRouter.route('/video').get(async (req, res) => {
     const filename = filenamify(title) + '.mp4'
 
     const stream = ytdl(url, {
-      /**
-       * itag 140 - audio-only format
-       * https://github.com/fent/node-ytdl-core#ytdlchooseformatformats-options
-       */
-      quality: 140,
+      quality: formatToQualityMap[format],
     })
 
     res.setHeader('Content-Disposition', contentDisposition(filename))

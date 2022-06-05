@@ -162,8 +162,18 @@
       <section>
         <h2>Download Audio</h2>
         <form method="GET" action="/download/video">
-          <label for="videoUrl">Video URL</label>
-          <input type="text" id="videoUrl" name="url" />
+          <label for="inputDownloadAudio">Video URL</label>
+          <input type="text" id="inputDownloadAudio" name="url" />
+          <input type="hidden" name="format" value="audio">
+          <button type="submit">Download</button>
+        </form>
+      </section>
+      <section>
+        <h2>Download Video</h2>
+        <form method="GET" action="/download/video">
+          <label for="inputDownloadVideo">Video URL</label>
+          <input type="text" id="inputDownloadVideo" name="url" />
+          <input type="hidden" name="format" value="video">
           <button type="submit">Download</button>
         </form>
       </section>
